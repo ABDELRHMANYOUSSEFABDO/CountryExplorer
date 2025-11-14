@@ -35,8 +35,9 @@ final class CountryRepository: CountryRepositoryProtocol {
             .handleEvents(receiveOutput: { [weak self] countries in
                 guard let self = self else { return }
                 
-                _ = self.saveCountriesLocally(countries)
+                self.saveCountriesLocally(countries)
                     .sink(receiveCompletion: { _ in }, receiveValue: { })
+                    .store(in: &self.cancellables)
             })
             .catch { [weak self] appError -> CountryDomainPublisher<[Country]> in
                 guard let self = self else {
@@ -52,29 +53,11 @@ final class CountryRepository: CountryRepositoryProtocol {
             return fetchAllCountries()
         }
         
-        let localSearch = getLocalCountries()
+        // Offline-first strategy: Search locally only
+        return getLocalCountries()
             .map { [weak self] countries in
-                guard let self = self else { return [] as [Country] }
+                guard let self = self else { return [] }
                 return self.searchService.search(countries, query: query)
-            }
-            .eraseToAnyPublisher()
-        
-        return localSearch
-            .flatMap { [weak self] localResults -> CountryDomainPublisher<[Country]> in
-                guard let self = self else {
-                    return Fail(error: ApplicationError.unknown("Repository deallocated"))
-                        .eraseToAnyPublisher()
-                }
-                
-                if !localResults.isEmpty {
-                    return Just(localResults)
-                        .setFailureType(to: ApplicationError.self)
-                        .eraseToAnyPublisher()
-                }
-                
-                return self.networkManager.searchCountries(query: query)
-                    .mapError { ApplicationError.networkError($0) }
-                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
@@ -101,6 +84,13 @@ final class CountryRepository: CountryRepositoryProtocol {
                 
                 return self.networkManager.fetchCountryByCode(code)
                     .mapError { ApplicationError.networkError($0) }
+                    .handleEvents(receiveOutput: { [weak self] country in
+                        guard let self = self else { return }
+                        // Save fetched country locally
+                        self.saveCountriesLocally([country])
+                            .sink(receiveCompletion: { _ in }, receiveValue: { })
+                            .store(in: &self.cancellables)
+                    })
                     .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
