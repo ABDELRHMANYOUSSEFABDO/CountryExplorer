@@ -4,26 +4,32 @@
 //
 //  Created by Abdelrahman.Youssef on 14/11/2025.
 //
+//  DEPRECATED: Use DIContainer instead
+//  This factory is kept for backward compatibility but delegates to DIContainer
 
 import Foundation
 
 struct UseCaseFactory {
-
-
-    private static let countryRepository: CountryRepositoryProtocol = {
-        RepositoryFactory.makeCountryRepository()
-    }()
-
+    
+    private static let container: DIContainerProtocol = DIContainer.shared
 
     static func makeFetchAllCountriesUseCase() -> FetchAllCountriesUseCaseProtocol {
-        FetchAllCountriesUseCase(repository: countryRepository)
+        container.makeFetchAllCountriesUseCase()
     }
 
     static func makeSearchCountriesUseCase() -> SearchCountriesUseCaseProtocol {
-        SearchCountriesUseCase(repository: countryRepository)
+        container.makeSearchCountriesUseCase()
     }
 
     static func makeManageSelectedCountriesUseCase() -> ManageSelectedCountriesUseCaseProtocol {
-        ManageSelectedCountriesUseCase(repository: countryRepository)
+        container.makeManageSelectedCountriesUseCase()
+    }
+    
+    static func makeGetCountryByLocationUseCase() -> GetCountryByLocationUseCaseProtocol {
+        container.makeGetCountryByLocationUseCase()
+    }
+    
+    static func makeFirstLaunchManager() -> FirstLaunchManagerProtocol {
+        container.makeFirstLaunchManager()
     }
 }
