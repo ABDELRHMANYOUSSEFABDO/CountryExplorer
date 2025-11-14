@@ -11,14 +11,8 @@ import Combine
 struct ContentView: View {
 
     @StateObject private var coordinator = CountryFlowCoordinator()
+    @StateObject private var viewModel = ContentViewModel()
     @State private var isShowingSplash = true
-    @State private var cancellables = Set<AnyCancellable>()
-    
-    private let container: DIContainerProtocol = DIContainer.shared
-    
-    private lazy var firstLaunchManager: FirstLaunchManagerProtocol = {
-        container.makeFirstLaunchManager()
-    }()
 
     var body: some View {
         ZStack {
@@ -38,7 +32,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            handleFirstLaunch()
+            viewModel.handleFirstLaunch()
             
             // Show splash for 2.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
@@ -48,8 +42,17 @@ struct ContentView: View {
             }
         }
     }
+}
+
+final class ContentViewModel: ObservableObject {
+    private let container: DIContainerProtocol = DIContainer.shared
+    private var cancellables = Set<AnyCancellable>()
     
-    private func handleFirstLaunch() {
+    private lazy var firstLaunchManager: FirstLaunchManagerProtocol = {
+        container.makeFirstLaunchManager()
+    }()
+    
+    func handleFirstLaunch() {
         firstLaunchManager.handleFirstLaunchIfNeeded()
             .sink { _ in
                 Logger.shared.info("First launch handling completed")
