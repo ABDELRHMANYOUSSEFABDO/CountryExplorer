@@ -23,3 +23,4 @@ final class SearchCountriesUseCase: SearchCountriesUseCaseProtocol {
         repository.searchCountries(query: query)
     }
 }
+
