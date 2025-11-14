@@ -27,7 +27,12 @@ final class CountryUseCasesTests: XCTestCase {
                 alpha3Code: "FRA",
                 region: "Europe",
                 population: 67_000_000,
-                currencies: [Currency(code: "EUR", name: "Euro", symbol: "€")]
+                currencies: [Currency(code: "EUR", name: "Euro", symbol: "€")],
+                flag: "🇫🇷",
+                nativeName: "France",
+                languages: [],
+                timezones: ["UTC+01:00"],
+                borders: ["BEL", "DEU"]
             )
         ]
         fetchAllUseCase = FetchAllCountriesUseCase(repository: repository)
@@ -72,7 +77,12 @@ final class CountryUseCasesTests: XCTestCase {
                 alpha3Code: "C\($0)\($0)",
                 region: "Test",
                 population: 1_000,
-                currencies: []
+                currencies: [],
+                flag: nil,
+                nativeName: nil,
+                languages: [],
+                timezones: nil,
+                borders: nil
             )
         }
 
@@ -83,7 +93,12 @@ final class CountryUseCasesTests: XCTestCase {
             alpha3Code: "EXT",
             region: "Test",
             population: 1_000,
-            currencies: []
+            currencies: [],
+            flag: nil,
+            nativeName: nil,
+            languages: [],
+            timezones: nil,
+            borders: nil
         )
 
         manageSelectedUseCase.add(newCountry)
@@ -97,6 +112,96 @@ final class CountryUseCasesTests: XCTestCase {
             }
             .store(in: &cancellables)
 
+        wait(for: [expectation], timeout: 1.0)
+    }
+}
+
+// MARK: - Search Use Case Tests
+extension CountryUseCasesTests {
+    
+    func testSearchCountries_withValidQuery_returnsMatchingCountries() {
+        // Given
+        let searchUseCase = SearchCountriesUseCase(repository: repository)
+        let expectation = XCTestExpectation(description: "search countries")
+        
+        // When
+        searchUseCase.execute(query: "France")
+            .sink { completion in
+                if case .failure(let error) = completion {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            } receiveValue: { countries in
+                // Then
+                XCTAssertEqual(countries.count, 1)
+                XCTAssertEqual(countries.first?.name, "France")
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func testSearchCountries_withEmptyQuery_returnsAllCountries() {
+        // Given
+        let searchUseCase = SearchCountriesUseCase(repository: repository)
+        let expectation = XCTestExpectation(description: "search with empty query")
+        
+        // When
+        searchUseCase.execute(query: "")
+            .sink { completion in
+                if case .failure(let error) = completion {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            } receiveValue: { countries in
+                // Then
+                XCTAssertEqual(countries.count, 1)
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func testSearchCountries_withNoResults_returnsEmptyArray() {
+        // Given
+        let searchUseCase = SearchCountriesUseCase(repository: repository)
+        let expectation = XCTestExpectation(description: "search with no results")
+        
+        // When
+        searchUseCase.execute(query: "NonExistentCountry")
+            .sink { completion in
+                if case .failure(let error) = completion {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            } receiveValue: { countries in
+                // Then
+                XCTAssertTrue(countries.isEmpty)
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func testSearchCountries_caseInsensitive_findsResults() {
+        // Given
+        let searchUseCase = SearchCountriesUseCase(repository: repository)
+        let expectation = XCTestExpectation(description: "case insensitive search")
+        
+        // When
+        searchUseCase.execute(query: "fRaNcE")
+            .sink { completion in
+                if case .failure(let error) = completion {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            } receiveValue: { countries in
+                // Then
+                XCTAssertEqual(countries.count, 1)
+                XCTAssertEqual(countries.first?.name, "France")
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+        
         wait(for: [expectation], timeout: 1.0)
     }
 }

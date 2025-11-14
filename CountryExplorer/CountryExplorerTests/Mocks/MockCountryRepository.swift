@@ -16,44 +16,50 @@ final class MockCountryRepository: CountryRepositoryProtocol {
 
     func fetchAllCountries() -> CountryDomainPublisher<[Country]> {
         Just(countries)
-            .setFailureType(to: Error.self)
+            .setFailureType(to: ApplicationError.self)
             .eraseToAnyPublisher()
     }
 
     func searchCountries(query: String) -> CountryDomainPublisher<[Country]> {
-        let filtered = countries.filter { $0.name.lowercased().contains(query.lowercased()) }
+        let filtered = countries.filter {
+            $0.name.lowercased().contains(query.lowercased())
+        }
+
         return Just(filtered)
-            .setFailureType(to: Error.self)
+            .setFailureType(to: ApplicationError.self)
             .eraseToAnyPublisher()
     }
 
     func fetchCountry(byCode code: String) -> CountryDomainPublisher<Country> {
-        guard let country = countries.first(where: { $0.alpha2Code == code || $0.alpha3Code == code }) else {
-            return Fail(error: ApplicationError.dataNotFound)  
+        if let country = countries.first(where: {
+            $0.alpha2Code == code || $0.alpha3Code == code
+        }) {
+            return Just(country)
+                .setFailureType(to: ApplicationError.self)
+                .eraseToAnyPublisher()
+        } else {
+            return Fail(error: ApplicationError.dataNotFound)
                 .eraseToAnyPublisher()
         }
-        return Just(country)
-            .setFailureType(to: Error.self)
-            .eraseToAnyPublisher()
     }
 
     func getSelectedCountries() -> CountryDomainPublisher<[Country]> {
         Just(selected)
-            .setFailureType(to: Error.self)
+            .setFailureType(to: ApplicationError.self)
             .eraseToAnyPublisher()
     }
 
     func addSelectedCountry(_ country: Country) -> CountryDomainPublisher<Void> {
         selected.append(country)
         return Just(())
-            .setFailureType(to: Error.self)
+            .setFailureType(to: ApplicationError.self)
             .eraseToAnyPublisher()
     }
 
     func removeSelectedCountry(_ country: Country) -> CountryDomainPublisher<Void> {
         selected.removeAll { $0.id == country.id }
         return Just(())
-            .setFailureType(to: Error.self)
+            .setFailureType(to: ApplicationError.self)
             .eraseToAnyPublisher()
     }
 }
