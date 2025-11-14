@@ -12,7 +12,6 @@ protocol CountryResponseMapping {
     func mapToDomain(_ dtos: [CountryDTO]) -> [Country]
 }
 
-/// مسئول عن تحويل الـ DTOs لـ Domain models
 final class CountryResponseMapper: CountryResponseMapping {
     
     func mapToDomain(_ dto: CountryDTO) -> Country {
@@ -24,6 +23,14 @@ final class CountryResponseMapper: CountryResponseMapping {
             )
         }
         
+        let languages: [Language] = (dto.languages ?? []).map { languageDTO in
+            Language(
+                iso639_1: languageDTO.iso639_1,
+                name: languageDTO.name ?? "",
+                nativeName: languageDTO.nativeName
+            )
+        }
+        
         return Country(
             name: dto.name,
             capital: dto.capital ?? "N/A",
@@ -31,7 +38,12 @@ final class CountryResponseMapper: CountryResponseMapping {
             alpha3Code: dto.alpha3Code ?? "",
             region: dto.region ?? "Unknown",
             population: dto.population ?? 0,
-            currencies: currencies
+            currencies: currencies,
+            flag: dto.flag,
+            nativeName: dto.nativeName,
+            languages: languages,
+            timezones: dto.timezones,
+            borders: dto.borders
         )
     }
     

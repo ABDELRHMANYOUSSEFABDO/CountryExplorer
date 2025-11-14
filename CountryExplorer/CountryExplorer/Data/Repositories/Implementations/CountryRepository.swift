@@ -13,14 +13,17 @@ final class CountryRepository: CountryRepositoryProtocol {
     
     private let networkManager: NetworkManagerProtocol
     private let localDataSource: CountryLocalDataSource
+    private let searchService: CountrySearchServiceProtocol
     private var cancellables = Set<AnyCancellable>()
     
     init(
         networkManager: NetworkManagerProtocol,
-        localDataSource: CountryLocalDataSource
+        localDataSource: CountryLocalDataSource,
+        searchService: CountrySearchServiceProtocol = CountrySearchService()
     ) {
         self.networkManager = networkManager
         self.localDataSource = localDataSource
+        self.searchService = searchService
     }
     
 
@@ -50,14 +53,9 @@ final class CountryRepository: CountryRepositoryProtocol {
         }
         
         let localSearch = getLocalCountries()
-            .map { countries in
-                countries.filter { country in
-                    country.name.localizedCaseInsensitiveContains(query) ||
-                    country.capital.localizedCaseInsensitiveContains(query) ||
-                    country.alpha2Code.localizedCaseInsensitiveContains(query) ||
-                    country.alpha3Code.localizedCaseInsensitiveContains(query) ||
-                    country.currencyDescription.localizedCaseInsensitiveContains(query)
-                }
+            .map { [weak self] countries in
+                guard let self = self else { return [] as [Country] }
+                return self.searchService.search(countries, query: query)
             }
             .eraseToAnyPublisher()
         
