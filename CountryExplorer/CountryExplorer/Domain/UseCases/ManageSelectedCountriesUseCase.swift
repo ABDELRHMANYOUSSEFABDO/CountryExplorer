@@ -29,16 +29,19 @@ final class ManageSelectedCountriesUseCase: ManageSelectedCountriesUseCaseProtoc
     func add(_ country: Country) -> CountryDomainPublisher<Void> {
         repository.getSelectedCountries()
             .flatMap { [weak self] current -> CountryDomainPublisher<Void> in
-                guard let self = self else {
-                    return Fail(error: NSError(domain: "deallocated", code: -1)).eraseToAnyPublisher()
+                guard let self else {
+                    return Fail(error: ApplicationError.unknown("ManageSelectedCountriesUseCase deallocated"))
+                        .eraseToAnyPublisher()
                 }
                 
                 if current.contains(where: { $0.id == country.id }) {
-                    return Fail(error: NSError(domain: "country-already-added", code: 1)).eraseToAnyPublisher()
+                    return Fail(error: ApplicationError.countryAlreadyAdded)
+                        .eraseToAnyPublisher()
                 }
                 
                 if current.count >= self.maxCountries {
-                    return Fail(error: NSError(domain: "max-countries-reached", code: 2)).eraseToAnyPublisher()
+                    return Fail(error: ApplicationError.maxCountriesReached)
+                        .eraseToAnyPublisher()
                 }
                 
                 return self.repository.addSelectedCountry(country)

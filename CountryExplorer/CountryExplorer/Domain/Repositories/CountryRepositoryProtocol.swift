@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-typealias CountryDomainPublisher<T> = AnyPublisher<T, Error>
+typealias CountryDomainPublisher<T> = AnyPublisher<T, ApplicationError>
 
 protocol CountryRepositoryProtocol {
     func fetchAllCountries() -> CountryDomainPublisher<[Country]>
