@@ -28,7 +28,7 @@ struct Language: Equatable, Hashable {
     }
 }
 
-struct Country: Identifiable, Equatable {
+struct Country: Identifiable, Equatable, Hashable {
     var id: String { alpha3Code }
     
     let name: String

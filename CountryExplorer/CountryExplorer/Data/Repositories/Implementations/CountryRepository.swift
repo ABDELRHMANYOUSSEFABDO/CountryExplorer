@@ -43,7 +43,18 @@ final class CountryRepository: CountryRepositoryProtocol {
                 guard let self = self else {
                     return Fail(error: appError).eraseToAnyPublisher()
                 }
+                // Fallback to local data, but if it's empty, return the original error
                 return self.getLocalCountries()
+                    .flatMap { localCountries -> CountryDomainPublisher<[Country]> in
+                        if localCountries.isEmpty {
+                            // If local data is empty, return the original network error
+                            return Fail(error: appError).eraseToAnyPublisher()
+                        }
+                        return Just(localCountries)
+                            .setFailureType(to: ApplicationError.self)
+                            .eraseToAnyPublisher()
+                    }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }

@@ -37,6 +37,13 @@ enum CountryEndpoint {
             components.path = "/v2/name/\(encodedName)"
         }
         
+        // Add fields query parameter for /v2/all endpoint
+        if case .all = self {
+            components.queryItems = [
+                URLQueryItem(name: "fields", value: "name,capital,currencies,alpha2Code,alpha3Code,region,subregion,latlng,flag")
+            ]
+        }
+        
         return components.url
     }
 }
