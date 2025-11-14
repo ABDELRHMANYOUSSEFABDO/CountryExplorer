@@ -27,21 +27,10 @@ struct CountryDetailsView<ViewModel: CountryDetailsViewModelProtocol>: View {
                 VStack(spacing: AppTheme.Spacing.lg) {
                     // Header Card
                     VStack(spacing: AppTheme.Spacing.md) {
-                        // Flag/Icon
-                        ZStack {
-                            Circle()
-                                .fill(AppTheme.Colors.gradient1)
-                                .frame(width: 100, height: 100)
-                            
-                            Image(systemName: "flag.fill")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .shadow(
-                            color: AppTheme.Colors.primary.opacity(0.3),
-                            radius: 15,
-                            x: 0,
-                            y: 8
+                        // Flag Image
+                        CircularCountryFlagView(
+                            flagURL: country.flagPNGURL,
+                            size: 100
                         )
                         .scaleEffect(isAnimating ? 1.0 : 0.8)
                         .animation(AppTheme.Animation.spring.delay(0.1), value: isAnimating)

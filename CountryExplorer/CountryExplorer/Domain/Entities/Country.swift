@@ -46,6 +46,12 @@ struct Country: Identifiable, Equatable, Hashable {
     let timezones: [String]?
     let borders: [String]?
     
+    // Computed property to generate PNG flag URL from alpha2Code
+    var flagPNGURL: String {
+        let code = alpha2Code.lowercased()
+        return "https://flagcdn.com/w320/\(code).png"
+    }
+    
     var mainCurrency: Currency? {
         currencies.first
     }

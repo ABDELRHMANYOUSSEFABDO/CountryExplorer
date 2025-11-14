@@ -12,21 +12,10 @@ struct CountryRowView: View {
 
     var body: some View {
         HStack(spacing: AppTheme.Spacing.md) {
-            // Flag/Icon Circle
-            ZStack {
-                Circle()
-                    .fill(AppTheme.Colors.gradient1)
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: "flag.fill")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-            .shadow(
-                color: AppTheme.Colors.primary.opacity(0.3),
-                radius: 8,
-                x: 0,
-                y: 4
+            // Flag Image
+            CircularCountryFlagView(
+                flagURL: row.flagURL,
+                size: 50
             )
             
             // Content

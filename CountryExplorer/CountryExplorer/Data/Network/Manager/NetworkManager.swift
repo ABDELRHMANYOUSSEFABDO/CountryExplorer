@@ -25,12 +25,13 @@ final class NetworkManager: NetworkManagerProtocol {
         client: NetworkClientProtocol,
         dataMapper: DataMapperProtocol,
         responseMapper: CountryResponseMapping = CountryResponseMapper(),
-        baseURL: String = "https://restcountries.com"
+        baseURL: String? = nil
     ) {
         self.client = client
         self.dataMapper = dataMapper
         self.responseMapper = responseMapper
-        self.baseURL = baseURL
+        // Use APIConfiguration for secure URL management
+        self.baseURL = baseURL ?? APIConfiguration.shared.fullBaseURL
     }
     
     

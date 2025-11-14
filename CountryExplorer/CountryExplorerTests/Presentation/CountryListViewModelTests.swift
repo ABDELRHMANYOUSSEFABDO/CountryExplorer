@@ -282,6 +282,76 @@ final class CountryListViewModelTests: XCTestCase {
         XCTAssertNil(mockCoordinator.lastShowDetailCountry)
     }
     
+    // MARK: - CountryRowViewModel Tests
+    
+    func testCountryRowViewModel_ShouldMapAllProperties() {
+        // Given
+        let country = Country.mock(
+            name: "Egypt",
+            capital: "Cairo",
+            alpha2Code: "EG",
+            alpha3Code: "EGY",
+            region: "Africa",
+            population: 100_000_000
+        )
+        
+        // When
+        let viewModel = CountryRowViewModel(country: country)
+        
+        // Then
+        XCTAssertEqual(viewModel.name, "Egypt")
+        XCTAssertEqual(viewModel.capital, "Cairo")
+        XCTAssertEqual(viewModel.region, "Africa")
+        XCTAssertEqual(viewModel.populationText, "100.0M")
+        XCTAssertEqual(viewModel.currencyText, "EGP (£)")
+        // Flag URL should be generated from alpha2Code
+        XCTAssertEqual(viewModel.flagURL, "https://flagcdn.com/w320/eg.png")
+    }
+    
+    func testCountryRowViewModel_FlagURLGeneration() {
+        // Given - Test with different country codes
+        let testCases: [(alpha2Code: String, expectedURL: String)] = [
+            ("EG", "https://flagcdn.com/w320/eg.png"),
+            ("US", "https://flagcdn.com/w320/us.png"),
+            ("GB", "https://flagcdn.com/w320/gb.png"),
+            ("SA", "https://flagcdn.com/w320/sa.png")
+        ]
+        
+        for testCase in testCases {
+            // When
+            let country = Country.mock(alpha2Code: testCase.alpha2Code)
+            let viewModel = CountryRowViewModel(country: country)
+            
+            // Then
+            XCTAssertEqual(viewModel.flagURL, testCase.expectedURL,
+                          "Flag URL for \(testCase.alpha2Code) should be \(testCase.expectedURL)")
+        }
+    }
+    
+    func testCountryRowViewModel_PopulationFormatting() {
+        // Test various population formats
+        let testCases: [(population: Int, expected: String)] = [
+            (0, "N/A"),
+            (500, "500"),
+            (1_500, "1.5k"),
+            (50_000, "50.0k"),
+            (1_500_000, "1.5M"),
+            (100_000_000, "100.0M")
+        ]
+        
+        for testCase in testCases {
+            // Given
+            let country = Country.mock(population: testCase.population)
+            
+            // When
+            let viewModel = CountryRowViewModel(country: country)
+            
+            // Then
+            XCTAssertEqual(viewModel.populationText, testCase.expected,
+                          "Population \(testCase.population) should format to \(testCase.expected)")
+        }
+    }
+    
     // MARK: - Refresh Tests
     
     func testRefresh_ShouldReloadCountries() async {
@@ -351,7 +421,8 @@ extension Country {
         alpha2Code: String = "EG",
         alpha3Code: String = "EGY",
         region: String = "Africa",
-        population: Int = 100_000_000
+        population: Int = 100_000_000,
+        flag: String? = "https://flagcdn.com/w320/eg.png"
     ) -> Country {
         Country(
             name: name,
@@ -361,7 +432,7 @@ extension Country {
             region: region,
             population: population,
             currencies: [Currency(code: "EGP", name: "Egyptian Pound", symbol: "£")],
-            flag: nil,
+            flag: flag,
             nativeName: name,
             languages: [Language(iso639_1: "ar", name: "Arabic", nativeName: "العربية")],
             timezones: ["UTC+02:00"],

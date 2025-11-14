@@ -1,0 +1,13 @@
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// Debug Configuration
+API_BASE_URL = https:/$()/restcountries.com
+API_VERSION = v2
+API_TIMEOUT = 30.0
+
+// App Configuration
+ENABLE_LOGGING = YES
+CACHE_EXPIRATION = 300
+MAX_CACHE_SIZE = 52428800
+

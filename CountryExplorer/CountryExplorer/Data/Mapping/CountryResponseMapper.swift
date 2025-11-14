@@ -39,7 +39,7 @@ final class CountryResponseMapper: CountryResponseMapping {
             region: dto.region ?? "Unknown",
             population: dto.population ?? 0,
             currencies: currencies,
-            flag: dto.flag,
+            flag: dto.flagURL, // Use PNG flag URL
             nativeName: dto.nativeName,
             languages: languages,
             timezones: dto.timezones,

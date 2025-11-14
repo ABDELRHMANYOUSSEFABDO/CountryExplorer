@@ -16,6 +16,7 @@ struct CountryRowViewModel: Identifiable, Equatable {
     let region: String
     let populationText: String
     let currencyText: String
+    let flagURL: String
 
     init(country: Country) {
         self.country = country
@@ -25,6 +26,7 @@ struct CountryRowViewModel: Identifiable, Equatable {
         self.region = country.region
         self.populationText = Self.formatPopulation(country.population)
         self.currencyText = country.currencyDescription
+        self.flagURL = country.flagPNGURL // Use PNG URL generated from alpha2Code
     }
 
     private static func formatPopulation(_ value: Int) -> String {
