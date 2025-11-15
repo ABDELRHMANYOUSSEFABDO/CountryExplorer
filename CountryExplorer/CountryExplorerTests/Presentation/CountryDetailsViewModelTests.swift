@@ -33,7 +33,6 @@ final class CountryDetailsViewModelTests: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Initialization Tests
     
     func testInit_ShouldSetCountryCorrectly() {
         // Then
@@ -46,24 +45,20 @@ final class CountryDetailsViewModelTests: XCTestCase {
     }
     
     func testCountry_ShouldBePublished() {
-        // Given
         var receivedCountries: [Country] = []
         let cancellable = sut.$country
             .sink { country in
                 receivedCountries.append(country)
             }
         
-        // Then
         XCTAssertEqual(receivedCountries.count, 1)
         XCTAssertEqual(receivedCountries.first?.name, "Egypt")
         
         cancellable.cancel()
     }
     
-    // MARK: - Country Properties Tests
     
     func testCountry_CurrencyDescription_ShouldBeFormatted() {
-        // Given
         let country = Country(
             name: "USA",
             capital: "Washington",
@@ -81,12 +76,10 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: country)
         
-        // Then
         XCTAssertEqual(viewModel.country.currencyDescription, "USD ($)")
     }
     
     func testCountry_LanguagesDescription_ShouldBeFormatted() {
-        // Given
         let country = Country(
             name: "Belgium",
             capital: "Brussels",
@@ -108,12 +101,10 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: country)
         
-        // Then
         XCTAssertEqual(viewModel.country.languagesDescription, "Nederlands, Français, Deutsch")
     }
     
     func testCountry_WithNoCurrency_ShouldShowNA() {
-        // Given
         let country = Country(
             name: "Test Country",
             capital: "Test Capital",
@@ -131,12 +122,10 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: country)
         
-        // Then
         XCTAssertEqual(viewModel.country.currencyDescription, "N/A")
     }
     
     func testCountry_WithNoLanguages_ShouldShowNA() {
-        // Given
         let country = Country(
             name: "Test Country",
             capital: "Test Capital",
@@ -154,19 +143,15 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: country)
         
-        // Then
         XCTAssertEqual(viewModel.country.languagesDescription, "N/A")
     }
     
-    // MARK: - Country Validation Tests
     
     func testCountry_WithValidData_ShouldBeValid() {
-        // Then
         XCTAssertTrue(sut.country.isValid)
     }
     
     func testCountry_WithEmptyName_ShouldBeInvalid() {
-        // Given
         let invalidCountry = Country(
             name: "",
             capital: "Cairo",
@@ -184,12 +169,10 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: invalidCountry)
         
-        // Then
         XCTAssertFalse(viewModel.country.isValid)
     }
     
     func testCountry_WithNegativePopulation_ShouldBeInvalid() {
-        // Given
         let invalidCountry = Country(
             name: "Test",
             capital: "Test",
@@ -207,8 +190,8 @@ final class CountryDetailsViewModelTests: XCTestCase {
         
         let viewModel = CountryDetailsViewModel(country: invalidCountry)
         
-        // Then
         XCTAssertFalse(viewModel.country.isValid)
     }
 }
+
 

@@ -30,10 +30,8 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Initial State Tests
     
     func testInitialState_ShouldBeIdle() {
-        // Then
         if case .idle = sut.state {
             XCTAssertTrue(true)
         } else {
@@ -41,10 +39,9 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         }
     }
     
-    // MARK: - OnAppear Tests
     
     func testOnAppear_ShouldLoadSelectedCountries() {
-        // Given
+
         let mockCountries = [
             Country.mock(name: "Egypt", alpha3Code: "EGY"),
             Country.mock(name: "USA", alpha3Code: "USA")
@@ -63,14 +60,11 @@ final class SelectedCountriesViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.onAppear()
         
-        // Then
         wait(for: [expectation], timeout: 1.0)
         
-        XCTAssertEqual(states.count, 3) // idle -> loading -> content
-        
+        XCTAssertEqual(states.count, 3)
         if case .loading = states[1] {
             XCTAssertTrue(true)
         } else {
@@ -89,7 +83,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
     }
     
     func testOnAppear_WhenNoSelectedCountries_ShouldShowEmptyContent() {
-        // Given
         mockManageUseCase.getSelectedResult = .success([])
         
         let expectation = expectation(description: "Empty content")
@@ -102,10 +95,8 @@ final class SelectedCountriesViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.onAppear()
         
-        // Then
         wait(for: [expectation], timeout: 1.0)
         
         if case .content(let rows) = sut.state {
@@ -116,7 +107,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
     }
     
     func testOnAppear_WhenLoadFails_ShouldShowError() {
-        // Given
         mockManageUseCase.getSelectedResult = .failure(.databaseError("Failed to load"))
         
         let expectation = expectation(description: "Error state")
@@ -131,18 +121,14 @@ final class SelectedCountriesViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.onAppear()
         
-        // Then
         wait(for: [expectation], timeout: 1.0)
         XCTAssertNotNil(errorMessage)
     }
     
-    // MARK: - Remove Country Tests
     
     func testDidRemoveCountry_WithValidId_ShouldRemoveAndReload() {
-        // Given
         let egypt = Country.mock(name: "Egypt", alpha3Code: "EGY")
         let usa = Country.mock(name: "USA", alpha3Code: "USA")
         
@@ -151,21 +137,19 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         
         sut.onAppear()
         
-        // Wait for initial load
         let loadExpectation = expectation(description: "Initial load")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             loadExpectation.fulfill()
         }
         wait(for: [loadExpectation], timeout: 1.0)
         
-        // Update result after removal
         mockManageUseCase.getSelectedResult = .success([usa])
         
         let removeExpectation = expectation(description: "Remove and reload")
         var finalState: ViewState<[CountryRowViewModel]>?
         
         sut.$state
-            .dropFirst() // Skip current state
+            .dropFirst()
             .sink { state in
                 if case .content(let rows) = state, rows.count == 1 {
                     finalState = state
@@ -174,10 +158,8 @@ final class SelectedCountriesViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.didRemoveCountry(id: "EGY")
         
-        // Then
         wait(for: [removeExpectation], timeout: 2.0)
         
         XCTAssertEqual(mockManageUseCase.removeCallCount, 1)
@@ -192,7 +174,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
     }
     
     func testDidRemoveCountry_WithInvalidId_ShouldNotRemove() {
-        // Given
         let egypt = Country.mock(name: "Egypt", alpha3Code: "EGY")
         mockManageUseCase.getSelectedResult = .success([egypt])
         
@@ -206,10 +187,8 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         
         let initialCallCount = mockManageUseCase.removeCallCount
         
-        // When
         sut.didRemoveCountry(id: "INVALID")
         
-        // Then
         let finalExpectation = expectation(description: "No removal")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             finalExpectation.fulfill()
@@ -221,7 +200,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
     }
     
     func testDidRemoveCountry_WhenRemovalFails_ShouldShowError() {
-        // Given
         let egypt = Country.mock(name: "Egypt", alpha3Code: "EGY")
         mockManageUseCase.getSelectedResult = .success([egypt])
         mockManageUseCase.removeResult = .failure(.dataNotFound)
@@ -245,10 +223,8 @@ final class SelectedCountriesViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.didRemoveCountry(id: "EGY")
         
-        // Then
         wait(for: [errorExpectation], timeout: 2.0)
         
         if case .error(let message) = sut.state {
@@ -258,7 +234,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         }
     }
     
-    // MARK: - Multiple Operations Tests
     
     func testMultipleRemoves_ShouldWorkSequentially() {
         // Given
@@ -277,7 +252,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         }
         wait(for: [loadExpectation], timeout: 1.0)
         
-        // When - Remove first country
         mockManageUseCase.getSelectedResult = .success([usa, france])
         sut.didRemoveCountry(id: "EGY")
         
@@ -287,7 +261,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         }
         wait(for: [firstRemoveExpectation], timeout: 1.0)
         
-        // When - Remove second country
         mockManageUseCase.getSelectedResult = .success([france])
         sut.didRemoveCountry(id: "USA")
         
@@ -297,7 +270,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
         }
         wait(for: [secondRemoveExpectation], timeout: 1.0)
         
-        // Then
         XCTAssertEqual(mockManageUseCase.removeCallCount, 2)
         
         if case .content(let rows) = sut.state {
@@ -309,7 +281,6 @@ final class SelectedCountriesViewModelTests: XCTestCase {
     }
 }
 
-// MARK: - Mock Manage Selected Use Case
 
 final class MockManageSelectedCountriesUseCase: ManageSelectedCountriesUseCaseProtocol {
     
@@ -341,4 +312,5 @@ final class MockManageSelectedCountriesUseCase: ManageSelectedCountriesUseCasePr
         return removeResult.publisher.eraseToAnyPublisher()
     }
 }
+
 

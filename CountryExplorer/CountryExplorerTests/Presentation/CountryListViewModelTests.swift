@@ -40,13 +40,9 @@ final class CountryListViewModelTests: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Initial State Tests
     
     func testInitialState_ShouldBeIdle() {
-        // Given & When
-        // ViewModel is created in setUp
         
-        // Then
         if case .idle = sut.state {
             XCTAssertTrue(true)
         } else {
@@ -55,14 +51,11 @@ final class CountryListViewModelTests: XCTestCase {
     }
     
     func testSearchQuery_InitialValue_ShouldBeEmpty() {
-        // Then
         XCTAssertEqual(sut.searchQuery, "")
     }
     
-    // MARK: - OnAppear Tests
     
     func testOnAppear_WhenIdleState_ShouldFetchCountries() {
-        // Given
         let mockCountries = [
             Country.mock(name: "Egypt", alpha3Code: "EGY"),
             Country.mock(name: "USA", alpha3Code: "USA")
@@ -81,13 +74,11 @@ final class CountryListViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.onAppear()
         
-        // Then
         wait(for: [expectation], timeout: 1.0)
         
-        XCTAssertEqual(states.count, 3) // idle -> loading -> content
+        XCTAssertEqual(states.count, 3)
         
         if case .loading = states[1] {
             XCTAssertTrue(true)
@@ -105,13 +96,11 @@ final class CountryListViewModelTests: XCTestCase {
     }
     
     func testOnAppear_WhenAlreadyLoaded_ShouldNotFetchAgain() {
-        // Given
         let mockCountries = [Country.mock(name: "Egypt", alpha3Code: "EGY")]
         mockFetchUseCase.result = .success(mockCountries)
         
-        sut.onAppear() // First load
+        sut.onAppear()
         
-        // Wait for first load
         let firstExpectation = expectation(description: "First load")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             firstExpectation.fulfill()
@@ -120,17 +109,14 @@ final class CountryListViewModelTests: XCTestCase {
         
         let callCountBeforeSecondAppear = mockFetchUseCase.executeCallCount
         
-        // When
-        sut.onAppear() // Second appearance
+        sut.onAppear()
         
-        // Then
         XCTAssertEqual(mockFetchUseCase.executeCallCount, callCountBeforeSecondAppear,
                       "Should not fetch again when state is not idle")
     }
     
     func testOnAppear_WhenFetchFails_ShouldShowError() {
-        // Given
-        mockFetchUseCase.result = .failure(.networkError(.serverError(statusCode: 500)))
+        mockFetchUseCase.result = .failure(.networkError(.serverError(statusCode: 500, message: nil)))
         
         let expectation = expectation(description: "Error state")
         var errorMessage: String?
@@ -144,18 +130,14 @@ final class CountryListViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.onAppear()
         
-        // Then
         wait(for: [expectation], timeout: 1.0)
         XCTAssertNotNil(errorMessage)
     }
     
-    // MARK: - Search Tests
     
     func testSearch_WithValidQuery_ShouldShowResults() {
-        // Given
         let mockResults = [Country.mock(name: "Egypt", alpha3Code: "EGY")]
         mockSearchUseCase.result = .success(mockResults)
         
@@ -163,7 +145,7 @@ final class CountryListViewModelTests: XCTestCase {
         var contentReceived = false
         
         sut.$state
-            .dropFirst() // Skip initial idle state
+            .dropFirst()
             .sink { state in
                 if case .content(let rows) = state {
                     contentReceived = true
@@ -174,29 +156,24 @@ final class CountryListViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // When
         sut.searchQuery = "Egypt"
         
-        // Then
         wait(for: [expectation], timeout: 2.0)
         XCTAssertTrue(contentReceived)
     }
     
     func testSearch_WithEmptyQuery_ShouldShowAllCountries() {
-        // Given
         let allCountries = [
             Country.mock(name: "Egypt", alpha3Code: "EGY"),
             Country.mock(name: "USA", alpha3Code: "USA")
         ]
         mockFetchUseCase.result = .success(allCountries)
         
-        // Load all countries first
         sut.onAppear()
         
         let expectation = expectation(description: "Show all countries")
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // When - Clear search
             self.sut.searchQuery = ""
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -214,10 +191,8 @@ final class CountryListViewModelTests: XCTestCase {
     }
     
     func testSearch_IsDebounced() {
-        // Given
         mockSearchUseCase.result = .success([])
         
-        // When - Type multiple characters quickly
         sut.searchQuery = "E"
         sut.searchQuery = "Eg"
         sut.searchQuery = "Egy"
@@ -236,7 +211,6 @@ final class CountryListViewModelTests: XCTestCase {
                       "Search should be debounced")
     }
     
-    // MARK: - Country Selection Tests
     
     func testDidSelectCountry_WithValidId_ShouldNavigateToDetails() {
         // Given
@@ -254,16 +228,13 @@ final class CountryListViewModelTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 1.0)
         
-        // When
         sut.didSelectCountry(id: "EGY")
         
-        // Then
         XCTAssertEqual(mockCoordinator.lastShowDetailCountry?.alpha3Code, "EGY")
         XCTAssertEqual(mockCoordinator.lastShowDetailCountry?.name, "Egypt")
     }
     
     func testDidSelectCountry_WithInvalidId_ShouldNotNavigate() {
-        // Given
         let mockCountries = [Country.mock(name: "Egypt", alpha3Code: "EGY")]
         mockFetchUseCase.result = .success(mockCountries)
         
@@ -275,17 +246,13 @@ final class CountryListViewModelTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 1.0)
         
-        // When
         sut.didSelectCountry(id: "INVALID")
         
-        // Then
         XCTAssertNil(mockCoordinator.lastShowDetailCountry)
     }
     
-    // MARK: - CountryRowViewModel Tests
     
     func testCountryRowViewModel_ShouldMapAllProperties() {
-        // Given
         let country = Country.mock(
             name: "Egypt",
             capital: "Cairo",
@@ -295,21 +262,17 @@ final class CountryListViewModelTests: XCTestCase {
             population: 100_000_000
         )
         
-        // When
         let viewModel = CountryRowViewModel(country: country)
         
-        // Then
         XCTAssertEqual(viewModel.name, "Egypt")
         XCTAssertEqual(viewModel.capital, "Cairo")
         XCTAssertEqual(viewModel.region, "Africa")
         XCTAssertEqual(viewModel.populationText, "100.0M")
         XCTAssertEqual(viewModel.currencyText, "EGP (£)")
-        // Flag URL should be generated from alpha2Code
         XCTAssertEqual(viewModel.flagURL, "https://flagcdn.com/w320/eg.png")
     }
     
     func testCountryRowViewModel_FlagURLGeneration() {
-        // Given - Test with different country codes
         let testCases: [(alpha2Code: String, expectedURL: String)] = [
             ("EG", "https://flagcdn.com/w320/eg.png"),
             ("US", "https://flagcdn.com/w320/us.png"),
@@ -318,18 +281,15 @@ final class CountryListViewModelTests: XCTestCase {
         ]
         
         for testCase in testCases {
-            // When
             let country = Country.mock(alpha2Code: testCase.alpha2Code)
             let viewModel = CountryRowViewModel(country: country)
             
-            // Then
             XCTAssertEqual(viewModel.flagURL, testCase.expectedURL,
                           "Flag URL for \(testCase.alpha2Code) should be \(testCase.expectedURL)")
         }
     }
     
     func testCountryRowViewModel_PopulationFormatting() {
-        // Test various population formats
         let testCases: [(population: Int, expected: String)] = [
             (0, "N/A"),
             (500, "500"),
@@ -340,29 +300,23 @@ final class CountryListViewModelTests: XCTestCase {
         ]
         
         for testCase in testCases {
-            // Given
             let country = Country.mock(population: testCase.population)
             
-            // When
             let viewModel = CountryRowViewModel(country: country)
             
-            // Then
             XCTAssertEqual(viewModel.populationText, testCase.expected,
                           "Population \(testCase.population) should format to \(testCase.expected)")
         }
     }
     
-    // MARK: - Refresh Tests
     
     func testRefresh_ShouldReloadCountries() async {
-        // Given
         let initialCountries = [Country.mock(name: "Egypt", alpha3Code: "EGY")]
         mockFetchUseCase.result = .success(initialCountries)
         
         sut.onAppear()
         
-        // Wait for initial load
-        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        try? await Task.sleep(nanoseconds: 200_000_000)
         
         let updatedCountries = [
             Country.mock(name: "Egypt", alpha3Code: "EGY"),
@@ -382,7 +336,6 @@ final class CountryListViewModelTests: XCTestCase {
     }
 }
 
-// MARK: - Mock Use Cases
 
 final class MockFetchAllCountriesUseCase: FetchAllCountriesUseCaseProtocol {
     var executeCallCount = 0
@@ -412,7 +365,6 @@ final class MockCountryFlowCoordinator: CountryFlowCoordinating {
     }
 }
 
-// MARK: - Country Mock Extension
 
 extension Country {
     static func mock(

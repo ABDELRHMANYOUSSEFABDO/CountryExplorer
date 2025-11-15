@@ -68,7 +68,6 @@ final class CountryUseCasesTests: XCTestCase {
     func testManageSelectedCountries_respectsMaxLimit() {
         let expectation = XCTestExpectation(description: "cannot add more than 5")
 
-        // نضيف 5 دول مبدئيًا
         repository.selected = (1...5).map {
             Country(
                 name: "Country \($0)",
@@ -142,11 +141,9 @@ extension CountryUseCasesTests {
     }
     
     func testSearchCountries_withEmptyQuery_returnsAllCountries() {
-        // Given
         let searchUseCase = SearchCountriesUseCase(repository: repository)
         let expectation = XCTestExpectation(description: "search with empty query")
         
-        // When
         searchUseCase.execute(query: "")
             .sink { completion in
                 if case .failure(let error) = completion {

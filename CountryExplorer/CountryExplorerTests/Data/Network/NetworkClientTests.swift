@@ -27,7 +27,6 @@ final class NetworkClientTests: XCTestCase {
     }
 
     func testRequestSuccess_returnsDataAndTracksURL() {
-        // Given
         let expectation = XCTestExpectation(description: "Request succeeds")
         let testData = "Test Data".data(using: .utf8)!
         sut.dataToReturn = testData
@@ -70,7 +69,6 @@ final class NetworkClientTests: XCTestCase {
             .sink(
                 receiveCompletion: { completion in
                     if case .failure(let error) = completion {
-                        // Then
                         XCTAssertEqual(error, NetworkError.noInternetConnection)
                         expectation.fulfill()
                     }

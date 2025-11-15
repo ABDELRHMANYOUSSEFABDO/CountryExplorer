@@ -41,7 +41,7 @@ final class ResponseMapperTests: XCTestCase {
             capital: nil,
             alpha2Code: "MC",
             alpha3Code: "MIN",
-            flag: nil,
+            flag: nil, flags: nil,
             region: nil,
             subregion: nil,
             population: nil,
@@ -63,14 +63,11 @@ final class ResponseMapperTests: XCTestCase {
     }
 
     func testMapArrayDTOsToDomainArray() {
-        // Given
         let dtos = [NetworkTestHelpers.makeMockCountryDTO(),
                     NetworkTestHelpers.makeMockCountryDTO()]
 
-        // When
         let domains = sut.mapToDomain(dtos)
 
-        // Then
         XCTAssertEqual(domains.count, 2)
         XCTAssertEqual(domains[0].name, "Test Country")
     }

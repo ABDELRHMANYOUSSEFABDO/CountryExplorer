@@ -71,7 +71,6 @@ final class NetworkManagerTests: XCTestCase {
         let json = NetworkTestHelpers.makeMockCountriesJSON()
         mockClient.setJSONResponse(json)
 
-        // When
         sut.searchCountries(query: "test")
             .sink(
                 receiveCompletion: { completion in
@@ -91,12 +90,10 @@ final class NetworkManagerTests: XCTestCase {
     }
 
     func testFetchCountryByCodeSuccess_buildsCorrectURL() {
-        // Given
         let expectation = XCTestExpectation(description: "Fetch country by code")
         let json = NetworkTestHelpers.makeMockCountryJSON()
         mockClient.setJSONResponse(json)
 
-        // When
         sut.fetchCountryByCode("TC")
             .sink(
                 receiveCompletion: { completion in

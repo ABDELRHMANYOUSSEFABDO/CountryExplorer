@@ -21,6 +21,10 @@ final class MockCountryRepository: CountryRepositoryProtocol {
     }
 
     func searchCountries(query: String) -> CountryDomainPublisher<[Country]> {
+        guard !query.isEmpty else {
+            return fetchAllCountries()
+        }
+        
         let filtered = countries.filter {
             $0.name.lowercased().contains(query.lowercased())
         }

@@ -18,7 +18,7 @@ struct NetworkTestHelpers {
             capital: "Test Capital",
             alpha2Code: "TC",
             alpha3Code: "TST",
-            flag: nil,
+            flag: nil, flags: nil,
             region: "Test Region",
             subregion: "Test Subregion",
             population: 1_000_000,
