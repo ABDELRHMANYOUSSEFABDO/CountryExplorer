@@ -40,7 +40,7 @@ enum CountryEndpoint {
         // Add fields query parameter for /v2/all endpoint
         if case .all = self {
             components.queryItems = [
-                URLQueryItem(name: "fields", value: "name,capital,currencies,alpha2Code,alpha3Code,region,subregion,latlng,population,nativeName,languages,borders,timezones")
+                URLQueryItem(name: "fields", value: "name,capital,currencies,alpha2Code,alpha3Code,region,subregion,latlng,flag")
             ]
         }
         

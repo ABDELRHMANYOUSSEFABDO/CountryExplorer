@@ -46,39 +46,38 @@ struct SelectedCountriesView<ViewModel: SelectedCountriesViewModelProtocol>: Vie
                     subtitle: "Start exploring and add your favorite countries!"
                 )
             } else {
-                ScrollView {
-                    LazyVStack(spacing: AppTheme.Spacing.md) {
-                        ForEach(rows) { row in
-                            HStack(spacing: 0) {
-                                CountryRowView(row: row)
-                                
-                                Button {
-                                    HapticManager.shared.medium()
-                                    withAnimation(AppTheme.Animation.spring) {
-                                        viewModel.didRemoveCountry(id: row.id)
-                                    }
-                                } label: {
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: AppTheme.CornerRadius.md)
-                                            .fill(AppTheme.Colors.error.opacity(0.1))
-                                            .frame(width: 60)
-                                        
-                                        Image(systemName: "trash.fill")
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .foregroundColor(AppTheme.Colors.error)
-                                    }
+                List {
+                    ForEach(rows) { row in
+                        Button {
+                            HapticManager.shared.light()
+                            viewModel.didSelectCountry(id: row.id)
+                        } label: {
+                            CountryRowView(row: row)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .listRowInsets(EdgeInsets(
+                            top: AppTheme.Spacing.sm,
+                            leading: AppTheme.Spacing.md,
+                            bottom: AppTheme.Spacing.sm,
+                            trailing: AppTheme.Spacing.md
+                        ))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                HapticManager.shared.medium()
+                                withAnimation(AppTheme.Animation.spring) {
+                                    viewModel.didRemoveCountry(id: row.id)
                                 }
-                                .buttonStyle(PlainButtonStyle())
+                            } label: {
+                                Label("Delete", systemImage: "trash.fill")
                             }
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .leading).combined(with: .opacity),
-                                removal: .move(edge: .trailing).combined(with: .opacity)
-                            ))
                         }
                     }
-                    .padding(.horizontal, AppTheme.Spacing.md)
-                    .padding(.vertical, AppTheme.Spacing.sm)
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .padding(.vertical, AppTheme.Spacing.sm)
             }
         }
     }

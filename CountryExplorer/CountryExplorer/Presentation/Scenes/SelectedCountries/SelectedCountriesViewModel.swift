@@ -13,6 +13,7 @@ protocol SelectedCountriesViewModelProtocol: ObservableObject {
 
     func onAppear()
     func didRemoveCountry(id: String)
+    func didSelectCountry(id: String)
 }
 
 final class SelectedCountriesViewModel: SelectedCountriesViewModelProtocol {
@@ -20,14 +21,25 @@ final class SelectedCountriesViewModel: SelectedCountriesViewModelProtocol {
     @Published private(set) var state: ViewState<[CountryRowViewModel]> = .idle
 
     private let manageSelectedUseCase: ManageSelectedCountriesUseCaseProtocol
+    private let coordinator: CountryFlowCoordinating
     private var cancellables = Set<AnyCancellable>()
 
-    init(manageSelectedUseCase: ManageSelectedCountriesUseCaseProtocol) {
+    init(
+        manageSelectedUseCase: ManageSelectedCountriesUseCaseProtocol,
+        coordinator: CountryFlowCoordinating
+    ) {
         self.manageSelectedUseCase = manageSelectedUseCase
+        self.coordinator = coordinator
     }
 
     func onAppear() {
         loadSelectedCountries()
+    }
+    
+    func didSelectCountry(id: String) {
+        guard case let .content(rows) = state,
+              let row = rows.first(where: { $0.id == id }) else { return }
+        coordinator.showCountryDetails(row.country)
     }
 
 //    func didRemoveCountry(id: String) {

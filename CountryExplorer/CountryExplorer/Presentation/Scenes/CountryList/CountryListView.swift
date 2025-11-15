@@ -21,6 +21,30 @@ struct CountryListView<ViewModel: CountryListViewModelProtocol>: View {
                 .ignoresSafeArea()
             
             content
+            
+            // Success/Error Toast Message
+            if let message = viewModel.addCountryMessage {
+                VStack {
+                    Spacer()
+                    Text(message)
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(
+                            message.contains("✅") ? Color.green : Color.red
+                        )
+                        .cornerRadius(AppTheme.CornerRadius.lg)
+                        .shadow(
+                            color: AppTheme.Shadows.medium.color,
+                            radius: AppTheme.Shadows.medium.radius,
+                            x: AppTheme.Shadows.medium.x,
+                            y: AppTheme.Shadows.medium.y
+                        )
+                        .padding(.bottom, 100)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.spring(), value: viewModel.addCountryMessage)
+            }
         }
         .navigationTitle("🌍 Countries")
         .searchable(
@@ -59,30 +83,37 @@ struct CountryListView<ViewModel: CountryListViewModelProtocol>: View {
                     subtitle: "Try a different search keyword."
                 )
             } else {
-                ScrollView {
-                    LazyVStack(spacing: AppTheme.Spacing.md) {
-                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                List {
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        Button {
+                            HapticManager.shared.light()
+                            viewModel.didSelectCountry(id: row.id)
+                        } label: {
+                            CountryRowView(row: row)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .listRowInsets(EdgeInsets(
+                            top: AppTheme.Spacing.sm,
+                            leading: AppTheme.Spacing.md,
+                            bottom: AppTheme.Spacing.sm,
+                            trailing: AppTheme.Spacing.md
+                        ))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button {
-                                HapticManager.shared.light()
-                                viewModel.didSelectCountry(id: row.id)
+                                HapticManager.shared.medium()
+                                viewModel.didAddCountry(id: row.id)
                             } label: {
-                                CountryRowView(row: row)
+                                Label("Add", systemImage: "plus.circle.fill")
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .pressableStyle()
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .opacity
-                            ))
-                            .animation(
-                                AppTheme.Animation.spring.delay(Double(index) * 0.05),
-                                value: rows.count
-                            )
+                            .tint(AppTheme.Colors.primary)
                         }
                     }
-                    .padding(.horizontal, AppTheme.Spacing.md)
-                    .padding(.vertical, AppTheme.Spacing.sm)
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .padding(.vertical, AppTheme.Spacing.sm)
             }
         }
     }

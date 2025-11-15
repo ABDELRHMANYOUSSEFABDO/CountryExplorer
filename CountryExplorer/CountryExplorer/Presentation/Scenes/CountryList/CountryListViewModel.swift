@@ -43,10 +43,12 @@ struct CountryRowViewModel: Identifiable, Equatable {
 protocol CountryListViewModelProtocol: AnyObject, ObservableObject {
     var state: ViewState<[CountryRowViewModel]> { get }
     var searchQuery: String { get set }
+    var addCountryMessage: String? { get }
 
     func onAppear()
     func refresh() async
     func didSelectCountry(id: String)
+    func didAddCountry(id: String)
 }
 
 final class CountryListViewModel: CountryListViewModelProtocol {
@@ -54,10 +56,12 @@ final class CountryListViewModel: CountryListViewModelProtocol {
 
     @Published private(set) var state: ViewState<[CountryRowViewModel]> = .idle
     @Published var searchQuery: String = ""
+    @Published private(set) var addCountryMessage: String?
 
 
     private let fetchAllUseCase: FetchAllCountriesUseCaseProtocol
     private let searchUseCase: SearchCountriesUseCaseProtocol
+    private let manageSelectedUseCase: ManageSelectedCountriesUseCaseProtocol
     private let coordinator: CountryFlowCoordinating
     private var cancellables = Set<AnyCancellable>()
 
@@ -68,10 +72,12 @@ final class CountryListViewModel: CountryListViewModelProtocol {
     init(
         fetchAllUseCase: FetchAllCountriesUseCaseProtocol,
         searchUseCase: SearchCountriesUseCaseProtocol,
+        manageSelectedUseCase: ManageSelectedCountriesUseCaseProtocol,
         coordinator: CountryFlowCoordinating
     ) {
         self.fetchAllUseCase = fetchAllUseCase
         self.searchUseCase = searchUseCase
+        self.manageSelectedUseCase = manageSelectedUseCase
         self.coordinator = coordinator
 
         bindSearch()
@@ -97,6 +103,38 @@ final class CountryListViewModel: CountryListViewModelProtocol {
         let countries = searchQuery.isEmpty ? allCountries : currentSearchResults
         guard let country = countries.first(where: { $0.alpha3Code == id }) else { return }
         coordinator.showCountryDetails(country)
+    }
+    
+    func didAddCountry(id: String) {
+        let countries = searchQuery.isEmpty ? allCountries : currentSearchResults
+        guard let country = countries.first(where: { $0.alpha3Code == id }) else { return }
+        
+        manageSelectedUseCase.add(country)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                switch completion {
+                case .failure(let error):
+                    // Show error message
+                    self.addCountryMessage = error.localizedDescription
+                    // Clear message after 3 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        self.addCountryMessage = nil
+                    }
+                case .finished:
+                    break
+                }
+            } receiveValue: { [weak self] _ in
+                guard let self else { return }
+                // Show success message
+                self.addCountryMessage = "✅ \(country.name) added to selected!"
+                HapticManager.shared.success()
+                // Clear message after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    self.addCountryMessage = nil
+                }
+            }
+            .store(in: &cancellables)
     }
 
 
